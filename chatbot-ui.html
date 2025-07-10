@@ -71,7 +71,8 @@
 
     .sidebar.collapsed h2,
     .sidebar.collapsed .history-item,
-    .sidebar.collapsed .clear-history {
+    .sidebar.collapsed .sidebar-actions,
+    .sidebar.collapsed .vote-stats {
       opacity: 0;
       transform: translateX(-20px);
       pointer-events: none;
@@ -154,8 +155,50 @@
       transform: translateX(4px);
     }
 
-    .clear-history {
+    .vote-stats {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 0.75rem;
+      margin-bottom: 1rem;
+      font-size: 0.8rem;
+      transition: all var(--transition-normal);
+    }
+
+    .vote-stats .stats-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.25rem;
+    }
+
+    .vote-stats .stats-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .sidebar-actions {
       margin-top: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      transition: all var(--transition-normal);
+    }
+
+    .export-button {
+      padding: 0.5rem;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #a7f3d0;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+
+    .export-button:hover {
+      background: rgba(16, 185, 129, 0.2);
+      transform: translateY(-1px);
+    }
+
+    .clear-history {
       padding: 0.5rem;
       background: rgba(239, 68, 68, 0.1);
       border: 1px solid rgba(239, 68, 68, 0.3);
@@ -168,6 +211,7 @@
 
     .clear-history:hover {
       background: rgba(239, 68, 68, 0.2);
+      transform: translateY(-1px);
     }
 
     /* Main Content */
@@ -582,8 +626,14 @@
   <div class="sidebar" id="sidebar">
     <button class="toggle-btn" onclick="toggleSidebar()" aria-label="Toggle sidebar">☰</button>
     <h2>Chat History</h2>
+    <div id="vote-stats" class="vote-stats"></div>
     <div id="history" class="history"></div>
-    <button class="clear-history" onclick="clearHistory()">Clear History</button>
+    <div class="sidebar-actions">
+      <button class="export-button" onclick="exportChatHistory()" title="Download chat history as JSON">
+        📥 Export JSON
+      </button>
+      <button class="clear-history" onclick="clearHistory()">🗑️ Clear History</button>
+    </div>
   </div>
 
   <div class="main">
@@ -621,6 +671,9 @@
     const overlay = document.getElementById("overlay");
     
     let isLoading = false;
+    
+    // Configuration: Set to true if running with server, false for localStorage only
+    const USE_SERVER = window.location.protocol !== 'file:' && window.location.hostname !== '';
 
     // Enhanced form submission with better loading states
     form.addEventListener("submit", async (e) => {
@@ -790,13 +843,51 @@
 
     async function vote(question, voteType) {
       try {
-        await fetch("/vote", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ question, vote: voteType })
-        });
+        if (USE_SERVER) {
+          // Send vote to server
+          const response = await fetch("/vote", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ question, vote: voteType })
+          });
+          
+          if (response.ok) {
+            console.log(`Vote sent to server: ${voteType} for "${question}"`);
+          } else {
+            throw new Error('Server vote failed');
+          }
+        } else {
+          // Save vote to localStorage
+          const votes = JSON.parse(localStorage.getItem("chat_votes") || "{}");
+          votes[question] = {
+            vote: voteType,
+            timestamp: new Date().toISOString()
+          };
+          localStorage.setItem("chat_votes", JSON.stringify(votes));
+          
+          // Update chat history with vote
+          updateChatHistoryWithVotes();
+          
+          console.log(`Vote saved locally: ${voteType} for "${question}"`);
+        }
+        
+        // Update vote statistics display
+        updateVoteStats();
+        
       } catch (err) {
         console.error('Vote failed:', err);
+        // Fallback to localStorage if server fails
+        if (USE_SERVER) {
+          const votes = JSON.parse(localStorage.getItem("chat_votes") || "{}");
+          votes[question] = {
+            vote: voteType,
+            timestamp: new Date().toISOString()
+          };
+          localStorage.setItem("chat_votes", JSON.stringify(votes));
+          updateChatHistoryWithVotes();
+          updateVoteStats();
+          console.log('Fallback: Vote saved to localStorage');
+        }
       }
     }
 
@@ -835,13 +926,100 @@
       const history = JSON.parse(localStorage.getItem("chat_history") || "[]");
       history.unshift(question);
       localStorage.setItem("chat_history", JSON.stringify(history.slice(0, 50)));
+      
+      // Update vote stats
+      updateVoteStats();
+    }
+
+    function updateVoteStats() {
+      const stats = getVoteStats();
+      const voteStatsEl = document.getElementById("vote-stats");
+      
+      if (stats.total > 0) {
+        voteStatsEl.innerHTML = `
+          <div class="stats-row">
+            <span>👍 Upvotes:</span>
+            <span>${stats.upvotes}</span>
+          </div>
+          <div class="stats-row">
+            <span>👎 Downvotes:</span>
+            <span>${stats.downvotes}</span>
+          </div>
+          <div class="stats-row">
+            <span><strong>Total Votes:</strong></span>
+            <span><strong>${stats.total}</strong></span>
+          </div>
+        `;
+        voteStatsEl.style.display = 'block';
+      } else {
+        voteStatsEl.innerHTML = `
+          <div style="text-align: center; opacity: 0.7;">
+            No votes yet
+          </div>
+        `;
+        voteStatsEl.style.display = 'block';
+      }
     }
 
     function clearHistory() {
       if (confirm("Are you sure you want to clear all chat history?")) {
         historyEl.innerHTML = "";
         localStorage.removeItem("chat_history");
+        localStorage.removeItem("chat_votes");
+        localStorage.removeItem("chat_history_with_votes");
+        updateVoteStats();
       }
+    }
+
+    function updateChatHistoryWithVotes() {
+      // This function updates the internal chat history structure with votes
+      // Called after each vote to keep data in sync
+      const history = JSON.parse(localStorage.getItem("chat_history") || "[]");
+      const votes = JSON.parse(localStorage.getItem("chat_votes") || "{}");
+      
+      const updatedHistory = history.map(question => ({
+        question: question,
+        vote: votes[question] ? votes[question].vote : null,
+        voteTimestamp: votes[question] ? votes[question].timestamp : null,
+        timestamp: new Date().toISOString()
+      }));
+      
+      localStorage.setItem("chat_history_with_votes", JSON.stringify(updatedHistory));
+    }
+
+    function exportChatHistory() {
+      const history = JSON.parse(localStorage.getItem("chat_history") || "[]");
+      const votes = JSON.parse(localStorage.getItem("chat_votes") || "{}");
+      
+      const exportData = {
+        exportDate: new Date().toISOString(),
+        totalQuestions: history.length,
+        totalVotes: Object.keys(votes).length,
+        chatHistory: history.map(question => ({
+          question: question,
+          vote: votes[question] ? votes[question].vote : null,
+          voteTimestamp: votes[question] ? votes[question].timestamp : null
+        })),
+        votes: votes
+      };
+      
+      const dataStr = JSON.stringify(exportData, null, 2);
+      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+      
+      const exportFileDefaultName = `chat_history_${new Date().toISOString().split('T')[0]}.json`;
+      
+      const linkElement = document.createElement('a');
+      linkElement.setAttribute('href', dataUri);
+      linkElement.setAttribute('download', exportFileDefaultName);
+      linkElement.click();
+    }
+
+    function getVoteStats() {
+      const votes = JSON.parse(localStorage.getItem("chat_votes") || "{}");
+      const upvotes = Object.values(votes).filter(v => v.vote === 'up').length;
+      const downvotes = Object.values(votes).filter(v => v.vote === 'down').length;
+      
+      return { upvotes, downvotes, total: upvotes + downvotes };
     }
 
     function loadHistory() {
@@ -888,6 +1066,7 @@
     
     // Initialize
     loadHistory();
+    updateVoteStats();
     adjustInputHeight();
     
     // Focus input on load
