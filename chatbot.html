@@ -63,8 +63,8 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
+      background: var(--bg-secondary);
+      color: var(--text-primary);
     }
 
     .app-container.chat-mode {
@@ -76,7 +76,7 @@
     /* Welcome Page Styles */
     .welcome-container {
       text-align: center;
-      max-width: 800px;
+      max-width: 600px;
       padding: 2rem;
       opacity: 1;
       transition: all var(--transition-slow);
@@ -87,22 +87,11 @@
     }
 
     .welcome-title {
-      font-size: 3.5rem;
-      font-weight: 700;
-      margin-bottom: 1rem;
-      background: linear-gradient(135deg, #ffffff 0%, #e0e7ff 100%);
-      background-clip: text;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      font-size: 2rem;
+      font-weight: 600;
+      margin-bottom: 2rem;
+      color: var(--text-primary);
       animation: fadeInUp 0.8s ease-out;
-    }
-
-    .welcome-subtitle {
-      font-size: 1.5rem;
-      font-weight: 300;
-      margin-bottom: 3rem;
-      opacity: 0.9;
-      animation: fadeInUp 0.8s ease-out 0.2s both;
     }
 
     @keyframes fadeInUp {
@@ -119,37 +108,36 @@
     /* Welcome Input Area */
     .welcome-input-area {
       width: 100%;
-      max-width: 600px;
-      animation: fadeInUp 0.8s ease-out 0.4s both;
+      animation: fadeInUp 0.8s ease-out 0.2s both;
     }
 
     .welcome-input-container {
       position: relative;
-      margin-bottom: 2rem;
+      margin-bottom: 1rem;
     }
 
     .welcome-input {
       width: 100%;
-      padding: 1.5rem 2rem;
-      font-size: 1.1rem;
-      border-radius: 50px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
+      padding: 1rem 4rem 1rem 1.5rem;
+      font-size: 1rem;
+      border-radius: 25px;
+      border: 2px solid var(--border-color);
       outline: none;
-      background: rgba(255, 255, 255, 0.1);
-      color: white;
-      backdrop-filter: blur(10px);
+      background: var(--bg-primary);
+      color: var(--text-primary);
       transition: all var(--transition-fast);
       font-family: inherit;
+      box-shadow: var(--shadow-sm);
     }
 
     .welcome-input::placeholder {
-      color: rgba(255, 255, 255, 0.7);
+      color: var(--text-light);
     }
 
     .welcome-input:focus {
-      border-color: rgba(255, 255, 255, 0.6);
-      background: rgba(255, 255, 255, 0.15);
-      box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.1);
+      border-color: var(--primary-color);
+      background: var(--bg-primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
     }
 
     .welcome-send-button {
@@ -157,66 +145,31 @@
       right: 8px;
       top: 50%;
       transform: translateY(-50%);
-      padding: 0.8rem 1.5rem;
+      padding: 0.6rem 1.2rem;
       border: none;
-      border-radius: 50px;
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%);
+      border-radius: 20px;
+      background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
       color: white;
       cursor: pointer;
       font-weight: 600;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
       transition: all var(--transition-fast);
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: var(--shadow-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
     }
 
     .welcome-send-button:hover:not(:disabled) {
-      background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.2) 100%);
       transform: translateY(-50%) scale(1.05);
+      box-shadow: var(--shadow-lg);
     }
 
     .welcome-send-button:disabled {
-      opacity: 0.5;
+      opacity: 0.6;
       cursor: not-allowed;
       transform: translateY(-50%);
-    }
-
-    /* Suggestion Cards */
-    .suggestion-cards {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-      gap: 1rem;
-      margin-top: 2rem;
-      animation: fadeInUp 0.8s ease-out 0.6s both;
-    }
-
-    .suggestion-card {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      padding: 1.5rem;
-      border-radius: 16px;
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      cursor: pointer;
-      transition: all var(--transition-fast);
-      text-align: left;
-    }
-
-    .suggestion-card:hover {
-      background: rgba(255, 255, 255, 0.15);
-      transform: translateY(-4px);
-      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-    }
-
-    .suggestion-card h4 {
-      margin: 0 0 0.5rem 0;
-      font-weight: 600;
-      font-size: 1rem;
-    }
-
-    .suggestion-card p {
-      margin: 0;
-      opacity: 0.8;
-      font-size: 0.9rem;
     }
 
     /* Sidebar Styles */
@@ -669,15 +622,7 @@
     /* Responsive Design */
     @media (max-width: 768px) {
       .welcome-title {
-        font-size: 2.5rem;
-      }
-
-      .welcome-subtitle {
-        font-size: 1.2rem;
-      }
-
-      .suggestion-cards {
-        grid-template-columns: 1fr;
+        font-size: 1.5rem;
       }
 
       .sidebar {
@@ -784,7 +729,6 @@
     <!-- Welcome Page -->
     <div class="welcome-container" id="welcome-container">
       <h1 class="welcome-title">What can I help with today?</h1>
-      <p class="welcome-subtitle">Ask me anything and I'll provide helpful answers</p>
       
       <form id="welcome-form" class="welcome-input-area">
         <div class="welcome-input-container">
@@ -802,25 +746,6 @@
           </button>
         </div>
       </form>
-
-      <div class="suggestion-cards">
-        <div class="suggestion-card" onclick="fillSuggestion('Help me write a professional email')">
-          <h4>✉️ Write an email</h4>
-          <p>Help me craft a professional email for any occasion</p>
-        </div>
-        <div class="suggestion-card" onclick="fillSuggestion('Explain a complex topic in simple terms')">
-          <h4>🧠 Explain concepts</h4>
-          <p>Break down complex ideas into easy-to-understand explanations</p>
-        </div>
-        <div class="suggestion-card" onclick="fillSuggestion('Help me plan my day efficiently')">
-          <h4>📅 Plan & organize</h4>
-          <p>Create schedules, to-do lists, and organize your tasks</p>
-        </div>
-        <div class="suggestion-card" onclick="fillSuggestion('Give me creative writing ideas')">
-          <h4>✨ Creative writing</h4>
-          <p>Generate ideas for stories, poems, or creative projects</p>
-        </div>
-      </div>
     </div>
     
     <!-- Chat Interface -->
@@ -943,11 +868,6 @@
       setTimeout(() => {
         userInput.focus();
       }, 500);
-    }
-
-    function fillSuggestion(text) {
-      welcomeInput.value = text;
-      welcomeInput.focus();
     }
 
     function setLoading(loading) {
