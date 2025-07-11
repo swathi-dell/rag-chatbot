@@ -109,6 +109,7 @@
     .welcome-input {
       width: 100%;
       padding: 1.25rem 1.5rem;
+      padding-right: 100px;
       font-size: 1.1rem;
       border-radius: 30px;
       border: 2px solid var(--border-color);
@@ -767,6 +768,18 @@
     let isLoading = false;
     let isChatMode = false;
 
+    // Mock responses for testing
+    const mockResponses = [
+      "Hello! I'm here to help you with any questions you might have. Feel free to ask me anything!",
+      "That's an interesting question! Let me think about that for a moment and provide you with a comprehensive answer.",
+      "I'd be happy to help you with that. Here's what I think about your query...",
+      "Great question! There are several ways to approach this. Let me break it down for you:",
+      "Thanks for asking! Based on my understanding, here's what I can tell you about that topic.",
+      "I appreciate your question. This is actually a complex topic with several important considerations:",
+      "That's a wonderful question to explore! Let me share some insights with you.",
+      "I'm glad you asked about this. It's something that many people wonder about, and here's my perspective:"
+    ];
+
     // Auto-resize textarea
     function autoResize(textarea) {
       textarea.style.height = 'auto';
@@ -806,11 +819,11 @@
       handleMessage(message);
     });
 
-    // Unified message handling
+    // Unified message handling with mock functionality
     async function handleMessage(message) {
       setLoading(true);
       
-      // Clear welcome input if it was used
+      // Clear appropriate input
       if (!isChatMode) {
         welcomeInput.value = "";
       } else {
@@ -822,19 +835,16 @@
      
       const typingId = appendMessage("bot", "", message, true);
 
+      // Simulate API call with mock response
       try {
-        const res = await fetch("/ask", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ message })
-        });
-
-        const data = await res.json();
+        // Simulate network delay
+        await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+        
         removeTypingIndicator(typingId);
-
-        data.response.forEach(part => {
-          appendMessage("bot", part.content, message, false, part.type);
-        });
+        
+        // Get random mock response
+        const randomResponse = mockResponses[Math.floor(Math.random() * mockResponses.length)];
+        appendMessage("bot", randomResponse, message, false, "text");
 
       } catch (err) {
         removeTypingIndicator(typingId);
@@ -983,11 +993,8 @@
  
     async function vote(question, voteType) {
       try {
-        await fetch("/vote", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ question, vote: voteType })
-        });
+        // Mock vote functionality - in real implementation, this would make an API call
+        console.log(`Vote: ${voteType} for question: ${question}`);
       } catch (err) {
         console.error('Vote failed:', err);
       }
